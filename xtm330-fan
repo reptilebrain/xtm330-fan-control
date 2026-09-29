@@ -1,0 +1,145 @@
+#!/bin/sh /etc/rc.common
+
+START=95
+
+DEVICE=/sys/bus/i2c/devices/0-002d
+WAIT_SECONDS=30
+
+log_message() {
+	if command -v logger >/dev/null 2>&1; then
+		logger -t xtm330-fan "$*" 2>/dev/null || true
+	fi
+}
+
+fail() {
+	echo "xtm330-fan: $*" >&2
+	log_message "ERROR: $*"
+	return 1
+}
+
+write_value() {
+	value=$1
+	file=$2
+
+	if ! printf '%s\n' "$value" > "$file"; then
+		fail "could not write $value to $file"
+		return 1
+	fi
+}
+
+safe_manual() {
+	# Best effort only: this is called after another sysfs write has failed.
+	printf '%s\n' 0 > "$DEVICE/temp5_auto_channels_pwm" 2>/dev/null
+	printf '%s\n' 0 > "$DEVICE/temp6_auto_channels_pwm" 2>/dev/null
+	printf '%s\n' 252 > "$DEVICE/pwm1" 2>/dev/null
+	log_message "configuration failed; attempted manual fallback at PWM 252"
+}
+
+check_files() {
+	for file in \
+		"$DEVICE/pwm1" \
+		"$DEVICE/fan1_input" \
+		"$DEVICE/temp5_input" \
+		"$DEVICE/temp6_input" \
+		"$DEVICE/temp5_auto_channels_pwm" \
+		"$DEVICE/temp6_auto_channels_pwm" \
+		"$DEVICE/temp5_pwm_enable" \
+		"$DEVICE/temp6_pwm_enable"
+	do
+		[ -e "$file" ] || {
+			fail "required sysfs file is missing: $file"
+			return 1
+		}
+	done
+
+	for sensor in 5 6; do
+		for point in 1 2 3 4 5 6 7; do
+			for kind in temp pwm; do
+				file="$DEVICE/temp${sensor}_auto_point${point}_${kind}"
+				[ -e "$file" ] || {
+					fail "required sysfs file is missing: $file"
+					return 1
+				}
+			done
+		done
+	done
+}
+
+configure_sensor() {
+	sensor=$1
+	point=1
+
+	for curve_point in \
+		"30000 80" \
+		"38000 84" \
+		"42000 84" \
+		"45000 92" \
+		"50000 96" \
+		"55000 128" \
+		"60000 252"
+	do
+		set -- $curve_point
+		write_value "$1" "$DEVICE/temp${sensor}_auto_point${point}_temp" || return 1
+		write_value "$2" "$DEVICE/temp${sensor}_auto_point${point}_pwm" || return 1
+		point=$((point + 1))
+	done
+
+	write_value 3 "$DEVICE/temp${sensor}_pwm_enable"
+}
+
+start() {
+	waited=0
+	while [ ! -e "$DEVICE/pwm1" ] && [ "$waited" -lt "$WAIT_SECONDS" ]; do
+		sleep 1
+		waited=$((waited + 1))
+	done
+
+	[ -e "$DEVICE/pwm1" ] || {
+		fail "$DEVICE/pwm1 did not appear within $WAIT_SECONDS seconds"
+		return 1
+	}
+
+	check_files || return 1
+
+	write_value 84 "$DEVICE/pwm1" || return 1
+	write_value 0 "$DEVICE/temp5_auto_channels_pwm" || {
+		safe_manual
+		return 1
+	}
+	write_value 0 "$DEVICE/temp6_auto_channels_pwm" || {
+		safe_manual
+		return 1
+	}
+
+	configure_sensor 5 || {
+		safe_manual
+		return 1
+	}
+	configure_sensor 6 || {
+		safe_manual
+		return 1
+	}
+
+	write_value 1 "$DEVICE/temp5_auto_channels_pwm" || {
+		safe_manual
+		return 1
+	}
+	write_value 1 "$DEVICE/temp6_auto_channels_pwm" || {
+		safe_manual
+		return 1
+	}
+
+	echo "xtm330-fan: SmartFanII configured"
+	log_message "SmartFanII configured for temp5/temp6 on PWM1"
+}
+
+stop() {
+	check_files || return 1
+
+	write_value 0 "$DEVICE/temp5_auto_channels_pwm" || return 1
+	write_value 0 "$DEVICE/temp6_auto_channels_pwm" || return 1
+	write_value 252 "$DEVICE/pwm1" || return 1
+
+	echo "xtm330-fan: automatic control disabled; PWM1 set to 252"
+	log_message "automatic control disabled; PWM1 set to 252"
+}
