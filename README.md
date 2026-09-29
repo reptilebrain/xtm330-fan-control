@@ -49,7 +49,10 @@ PWM1, sets PWM1 to the known-good value 84, and installs both curves. It then
 switches each disconnected sensor through Thermal Cruise mode and back to
 SmartFanII so the W83793 re-evaluates the curve before reconnecting both
 sensors. Running it again writes the same configuration and is safe. It does
-not alter unrelated W83793 settings.
+not alter unrelated W83793 settings. If full configuration validation or a
+configuration write fails, the script makes a best-effort attempt to disconnect
+both sensors from PWM1 and set the fan to the safe manual value 252. That
+fallback does not depend on the SmartFan curve attributes being available.
 
 ## Install
 
@@ -73,6 +76,15 @@ Disabling the service does not undo settings already programmed into the chip.
 Use the restore steps below or reboot after disabling it.
 
 ## Monitor
+
+Show the current temperatures, PWM, fan speed, modes, and channel mappings:
+
+```sh
+/etc/init.d/xtm330-fan status
+```
+
+Unavailable sysfs values are reported individually so the remaining values can
+still be inspected.
 
 Watch PWM, fan speed, and both valid temperature inputs:
 
