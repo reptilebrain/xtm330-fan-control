@@ -101,12 +101,15 @@ start() {
 
 	check_files || return 1
 
-	write_value 84 "$DEVICE/pwm1" || return 1
 	write_value 0 "$DEVICE/temp5_auto_channels_pwm" || {
 		safe_manual
 		return 1
 	}
 	write_value 0 "$DEVICE/temp6_auto_channels_pwm" || {
+		safe_manual
+		return 1
+	}
+	write_value 84 "$DEVICE/pwm1" || {
 		safe_manual
 		return 1
 	}
