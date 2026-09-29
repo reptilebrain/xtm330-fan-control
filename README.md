@@ -45,9 +45,11 @@ curve is installed for both temp5 and temp6:
 
 At startup, the script waits up to 30 seconds for the W83793 sysfs interface.
 It verifies every required file, temporarily disconnects temp5 and temp6 from
-PWM1, sets PWM1 to the known-good value 84, installs both curves, enables
-SmartFanII, and reconnects both sensors. Running it again writes the same
-configuration and is safe. It does not alter unrelated W83793 settings.
+PWM1, sets PWM1 to the known-good value 84, and installs both curves. It then
+switches each disconnected sensor through Thermal Cruise mode and back to
+SmartFanII so the W83793 re-evaluates the curve before reconnecting both
+sensors. Running it again writes the same configuration and is safe. It does
+not alter unrelated W83793 settings.
 
 ## Install
 
