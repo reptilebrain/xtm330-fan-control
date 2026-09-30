@@ -1,6 +1,8 @@
 #!/bin/sh /etc/rc.common
 
 START=95
+EXTRA_COMMANDS="status"
+EXTRA_HELP="\tstatus\tShow temperatures, fan speed, PWM modes, and channel mappings"
 
 DEVICE=/sys/bus/i2c/devices/0-002d
 WAIT_SECONDS=30
