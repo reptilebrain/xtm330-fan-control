@@ -99,8 +99,8 @@ configure_sensor() {
 	done
 
 	# Force the W83793 to re-evaluate the new table on repeated starts.
-	write_value 2 "$DEVICE/temp${sensor}_pwm_enable" || return 1
-	write_value 3 "$DEVICE/temp${sensor}_pwm_enable"
+	write_value 3 "$DEVICE/temp${sensor}_pwm_enable" || return 1
+	write_value 2 "$DEVICE/temp${sensor}_pwm_enable"
 }
 
 start() {
