@@ -26,9 +26,10 @@ observations from one unit, not safety limits or guaranteed results.
 
 The W83793 supports SmartFanII, a hardware fan curve with seven temperature/PWM
 points per temperature channel. The script sets `temp5_pwm_enable` and
-`temp6_pwm_enable` to `3` (SmartFanII), then maps both sensors to PWM1 with
-`temp5_auto_channels_pwm=1` and `temp6_auto_channels_pwm=1`. When both sensors
-request a speed, the chip uses the more critical request.
+`temp6_pwm_enable` to `2` (SmartFanII on the tested driver), then maps both
+sensors to PWM1 with `temp5_auto_channels_pwm=1` and
+`temp6_auto_channels_pwm=1`. When both sensors request a speed, the chip uses
+the more critical request.
 
 W83793 PWM values are effectively quantized in steps of 4. The same tested
 curve is installed for both temp5 and temp6:
@@ -46,7 +47,7 @@ curve is installed for both temp5 and temp6:
 At startup, the script waits up to 30 seconds for the W83793 sysfs interface.
 It verifies every required file, temporarily disconnects temp5 and temp6 from
 PWM1, sets PWM1 to the known-good value 84, and installs both curves. It then
-switches each disconnected sensor through Thermal Cruise mode and back to
+switches each disconnected sensor through Thermal Cruise mode (`3`) and back to
 SmartFanII so the W83793 re-evaluates the curve before reconnecting both
 sensors. Running it again writes the same configuration and is safe. It does
 not alter unrelated W83793 settings. If full configuration validation or a
