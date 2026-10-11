@@ -36,10 +36,10 @@ curve is installed for both temp5 and temp6:
 
 | Temperature | PWM |
 | ---: | ---: |
-| 30 °C | 80 |
-| 38 °C | 84 |
-| 42 °C | 84 |
-| 45 °C | 92 |
+| 30 °C | 72 |
+| 38 °C | 76 |
+| 42 °C | 80 |
+| 45 °C | 84 |
 | 50 °C | 96 |
 | 55 °C | 128 |
 | 60 °C | 252 |
@@ -60,17 +60,17 @@ fallback does not depend on the SmartFan curve attributes being available.
 Copy the script to the router and enable it:
 
 ```sh
-scp xtm330-fan root@192.168.1.1:/etc/init.d/xtm330-fan
+scp xtm330_fan root@192.168.1.1:/etc/init.d/xtm330_fan
 ssh root@192.168.1.1
-chmod +x /etc/init.d/xtm330-fan
-/etc/init.d/xtm330-fan enable
-/etc/init.d/xtm330-fan start
+chmod +x /etc/init.d/xtm330_fan
+/etc/init.d/xtm330_fan enable
+/etc/init.d/xtm330_fan start
 ```
 
 To prevent it from running on future boots:
 
 ```sh
-/etc/init.d/xtm330-fan disable
+/etc/init.d/xtm330_fan disable
 ```
 
 Disabling the service does not undo settings already programmed into the chip.
@@ -81,7 +81,7 @@ Use the restore steps below or reboot after disabling it.
 Show the current temperatures, PWM, fan speed, modes, and channel mappings:
 
 ```sh
-/etc/init.d/xtm330-fan status
+/etc/init.d/xtm330_fan status
 ```
 
 Unavailable sysfs values are reported individually so the remaining values can
@@ -113,13 +113,13 @@ Stop the service to disconnect both temperature channels from PWM1 and set a
 high manual value (252):
 
 ```sh
-/etc/init.d/xtm330-fan stop
+/etc/init.d/xtm330_fan stop
 ```
 
 For the device's normal boot-time behaviour, disable the service and reboot:
 
 ```sh
-/etc/init.d/xtm330-fan disable
+/etc/init.d/xtm330_fan disable
 reboot
 ```
 

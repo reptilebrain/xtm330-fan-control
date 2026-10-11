@@ -9,12 +9,12 @@ WAIT_SECONDS=30
 
 log_message() {
 	if command -v logger >/dev/null 2>&1; then
-		logger -t xtm330-fan "$*" 2>/dev/null || true
+		logger -t xtm330_fan "$*" 2>/dev/null || true
 	fi
 }
 
 fail() {
-	echo "xtm330-fan: $*" >&2
+	echo "xtm330_fan: $*" >&2
 	log_message "ERROR: $*"
 	return 1
 }
@@ -84,10 +84,10 @@ configure_sensor() {
 	point=1
 
 	for curve_point in \
-		"30000 80" \
-		"38000 84" \
-		"42000 84" \
-		"45000 92" \
+		"30000 72" \
+		"38000 76" \
+		"42000 80" \
+		"45000 84" \
 		"50000 96" \
 		"55000 128" \
 		"60000 252"
@@ -151,7 +151,7 @@ start() {
 		return 1
 	}
 
-	echo "xtm330-fan: SmartFanII configured"
+	echo "xtm330_fan: SmartFanII configured"
 	log_message "SmartFanII configured for temp5/temp6 on PWM1"
 }
 
@@ -174,7 +174,7 @@ stop() {
 		return 1
 	}
 
-	echo "xtm330-fan: automatic control disabled; PWM1 set to 252"
+	echo "xtm330_fan: automatic control disabled; PWM1 set to 252"
 	log_message "automatic control disabled; PWM1 set to 252"
 }
 
