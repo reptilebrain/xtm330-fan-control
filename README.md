@@ -8,19 +8,25 @@ hardware after startup and needs no background process.
 This has been tested on **one physical XTM 330 only**. It is not a claim of
 compatibility with every XTM 330 revision or any other appliance.
 
+See [HARDWARE.md](HARDWARE.md) for the verified board inventory, fan
+calibration data, thermal test results, evidence levels, and remaining hardware
+unknowns.
+
 ## Tested environment
 
 - WatchGuard XTM 330
-- OpenWrt 25.12.0
+- OpenWrt 25.12.0 and 25.12.5
 - Winbond W83793 at `/sys/bus/i2c/devices/0-002d`
 - fan tachometer: `fan1_input`
 - fan control: `pwm1`
 - usable temperature sensors: `temp5_input` and `temp6_input`
 
 On the tested unit, `temp1_input` through `temp4_input` report `-128000` and
-must not be used. The original fan speed was about 10,975 RPM. PWM 84 produced
-about 1,700 RPM, and idle temperature stabilized around 40–41 °C. These are
-observations from one unit, not safety limits or guaranteed results.
+must not be used. The original fan speed was about 10,975 RPM. A supervised
+calibration found that the fan stopped at PWM 72, 76, and 80. PWM 84 was the
+lowest tested value that kept it running, at about 1,700 RPM. Idle temperature
+stabilized around 40–45 °C. These are observations from one unit, not safety
+limits or guaranteed results.
 
 ## How it works
 
@@ -36,13 +42,18 @@ curve is installed for both temp5 and temp6:
 
 | Temperature | PWM |
 | ---: | ---: |
-| 30 °C | 72 |
-| 38 °C | 76 |
-| 42 °C | 80 |
-| 45 °C | 84 |
-| 50 °C | 96 |
-| 55 °C | 128 |
+| 30 °C | 84 |
+| 40 °C | 84 |
+| 46 °C | 84 |
+| 50 °C | 84 |
+| 54 °C | 88 |
+| 57 °C | 96 |
 | 60 °C | 252 |
+
+The response is strongly non-linear on the tested fan: PWM 88 produced roughly
+2,000–3,300 RPM depending on its previous speed, PWM 92 about 5,000–5,450 RPM,
+and PWM 96 about 9,060 RPM. Do not reduce the minimum below 84 without
+calibrating the specific fan and verifying that it cannot stall.
 
 At startup, the script waits up to 30 seconds for the W83793 sysfs interface.
 It verifies every required file, temporarily disconnects temp5 and temp6 from
