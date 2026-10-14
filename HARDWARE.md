@@ -73,6 +73,27 @@ The test unit exposes a 2 MiB parallel NOR device and a 512 MiB NAND device.
 | `kernel` | `0x00020000` | 5 MiB |
 | `ubi` | `0x00520000` | 506.875 MiB |
 
+### USB boot capability
+
+Both the normal U-Boot image (`mtd5`) and failsafe U-Boot image (`mtd6`) on the
+test unit contain commands for USB mass storage, `fatload`, `fatls`, `ext2load`,
+and `bootm`. This verifies that the bootloaders were built with the components
+needed to load an OpenWrt initramfs kernel from a USB drive instead of obtaining
+it from a TFTP server.
+
+The upstream installation procedure still documents TFTP as the supported
+method: enter failsafe mode, interrupt U-Boot, load the initramfs kernel into
+RAM, boot it, and perform a normal sysupgrade to NAND. A USB drive can
+potentially replace the TFTP transfer step, but does not by itself replace the
+remaining first-install precautions, MAC-address preparation, serial-console
+access, or NAND sysupgrade.
+
+An end-to-end USB boot has not yet been performed on the test unit. Before
+relying on it for installation or recovery, verify the exact device and
+partition numbering interactively with U-Boot's `usb`, `fatls`, or equivalent
+commands. This capability is distinct from OpenWrt extroot or running the
+permanent root filesystem from USB.
+
 The original configuration areas were inspected for plain-text fan, PWM, and
 temperature configuration strings; none were found. This does not prove that
 the original firmware lacked such settings.
@@ -250,6 +271,8 @@ setting should not be changed based on guesswork.
 - Characterize temperatures under sustained routed traffic through both switch
   groups and at higher room temperature.
 - Measure PSU exhaust temperature externally during load.
+- Perform and record a complete initramfs boot from USB, including the exact
+  U-Boot device and partition numbering.
 - Decode the external front-panel controller protocol, if LCD/buttons/LEDs are
   desired under OpenWrt.
 
